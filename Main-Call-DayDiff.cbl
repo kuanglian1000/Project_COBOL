@@ -35,7 +35,37 @@
            PERFORM GetValidSecondDate UNTIL DateIsValid
            DISPLAY "Second Date is ", SecondDate.
 
+           CALL "TwDateToEuDate" 
+             USING BY CONTENT FirstDate, 
+                   BY REFERENCE FirstDate.
+           DISPLAY "First Date(ddmmyyyy) = ", FirstDate.
 
+           CALL "EuDateToTwDate"
+             USING BY CONTENT FirstDate,
+                   BY REFERENCE FirstDate.
+           DISPLAY "First Date(yyyyMMdd) = ", FirstDate.
+
+           DISPLAY SPACES.
+           CALL "GetDayDiff"
+             USING BY CONTENT FirstDate, SecondDate
+                   BY REFERENCE DayDifference.
+           MOVE DayDifference TO DayDifference-Prn.
+
+           CALL "TwDateToEuDate"
+             USING BY CONTENT FirstDate,
+                   BY REFERENCE FirstDate.
+           MOVE FirstDate To FirstDate-Prn.
+
+           CALL "TwDateToEuDate"
+             USING BY CONTENT SecondDate,
+                   BY REFERENCE SecondDate.
+           MOVE SecondDate TO SecondDate-Prn.
+
+      *>   Show Result.
+           DISPLAY SPACES
+           DISPLAY "== Result =="
+           DISPLAY "The difference between " FirstDate-Prn " and "
+             SecondDate-Prn " is " DayDifference-Prn.
 
            STOP RUN.
 
@@ -74,3 +104,81 @@
                WHEN  DayToGreatForMonth  DISPLAY "(Error)DayToGreatForMonth"
                WHEN OTHER DISPLAY "(Error) Out of 1-6 Error Message"
            END-EVALUATE.
+      
+      *> =========================================================
+      *> Convert a Date in DDMMYYYY => YYYYMMDD.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. EuDateToTwDate.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  wsTwDate.
+           03  TwYYYY  PIC 9(4).
+           03  TwMM    PIC 99.
+           03  TwDD    PIC 99.
+           
+       LINKAGE SECTION.
+       01  EuDate.
+           03  EuDD    PIC 99.
+           03  EuMM    PIC 99.
+           03  EuYYYY  PIC 9(4).
+       01  outTwDate   PIC 9(8).
+       
+       PROCEDURE DIVISION USING EuDate, outTwDate.
+       BEGIN.
+           MOVE EuDD TO TwDD.
+           MOVE EuMM TO TwMM.
+           MOVE EuYYYY TO TwYYYY.
+           MOVE wsTwDate TO outTwDate.
+           EXIT PROGRAM.
+       END PROGRAM EuDateToTwDate.
+
+      *> =========================================================
+      *> Convert a Date in YYYYMMDD => DDMMYYYY.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TwDateToEuDate.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  wsEuDate.
+           03  EuDD    PIC 99.
+           03  EuMM    PIC 99.
+           03  EuYYYY  PIC 9(4).
+       
+       LINKAGE SECTION.
+       01  TwDate.
+           03  TwYYYY  PIC 9(4).
+           03  TwMM    PIC 99.
+           03  TwDD    PIC 99.
+       01  outEuDate   PIC 9(8).
+       
+       PROCEDURE DIVISION USING TwDate, outEuDate.
+       Begin.
+           MOVE TwYYYY to EuYYYY.
+           MOVE TwMM to EuMM.
+           MOVE TwDD to EuDD.
+           MOVE wsEuDate to outEuDate.
+           EXIT PROGRAM.           
+       END PROGRAM TwDateToEuDate.
+
+      *> =========================================================
+      *> 計算兩日期間的差異數
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. GetDayDiff.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       
+       LINKAGE SECTION.
+       01  Date1   PIC 9(8).
+       01  Date2   PIC 9(8).
+       01  Difference  PIC S9(7).
+       
+       PROCEDURE DIVISION USING Date1, Date2, Difference.
+       Begin.
+           COMPUTE Difference = FUNCTION INTEGER-OF-DATE(Date1)
+               - FUNCTION INTEGER-OF-DATE(Date2)
+           EXIT PROGRAM.           
+       END PROGRAM GetDayDiff.
+
+       END PROGRAM Main-Call-DayDiff.
